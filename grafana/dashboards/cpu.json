@@ -33,7 +33,7 @@
         "kind": "Panel",
         "spec": {
           "id": 1,
-          "title": " LLM EC2 — CPU",
+          "title": "Ollama ECS — CPU",
           "description": "",
           "links": [],
           "data": {
@@ -45,16 +45,26 @@
                   "spec": {
                     "query": {
                       "kind": "DataQuery",
-                      "group": "prometheus",
+                      "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "PBFA97CFB590B2093"
+                        "name": "P034F075C744B399F"
                       },
                       "spec": {
-                        "editorMode": "code",
-                        "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"llm-node\",mode=\"idle\"}[5m])))",
-                        "legendFormat": "__auto",
-                        "range": true
+                        "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName} MetricName=\"TaskCpuUtilization\" ClusterName=\"task2-cluster\" ServiceName=\"task2-ollama\"', 'Average', 60)",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "metricEditorMode": 1,
+                        "metricName": "TaskCpuUtilization",
+                        "metricQueryType": 0,
+                        "namespace": "ECS/ContainerInsights",
+                        "period": "60",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
                       }
                     },
                     "refId": "A",

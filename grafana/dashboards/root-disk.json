@@ -33,7 +33,7 @@
         "kind": "Panel",
         "spec": {
           "id": 1,
-          "title": "LLM EC2 — Root disk",
+          "title": "Ollama ECS — ephemeral storage",
           "description": "",
           "links": [],
           "data": {
@@ -45,16 +45,26 @@
                   "spec": {
                     "query": {
                       "kind": "DataQuery",
-                      "group": "prometheus",
+                      "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "PBFA97CFB590B2093"
+                        "name": "P034F075C744B399F"
                       },
                       "spec": {
-                        "editorMode": "code",
-                        "expr": "100 * node_filesystem_avail_bytes{job=\"llm-node\",mountpoint=\"/\"} / node_filesystem_size_bytes{job=\"llm-node\",mountpoint=\"/\"}",
-                        "legendFormat": "__auto",
-                        "range": true
+                        "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName} MetricName=\"TaskEphemeralStorageUtilization\" ClusterName=\"task2-cluster\" ServiceName=\"task2-ollama\"', 'Average', 60)",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "metricEditorMode": 1,
+                        "metricName": "TaskEphemeralStorageUtilization",
+                        "metricQueryType": 0,
+                        "namespace": "ECS/ContainerInsights",
+                        "period": "60",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
                       }
                     },
                     "refId": "A",
@@ -188,7 +198,7 @@
       "hideTimepicker": false,
       "fiscalYearStartMonth": 0
     },
-    "title": "Root disk",
+    "title": "Ephemeral storage",
     "variables": [],
     "preferences": {
       "layout": {

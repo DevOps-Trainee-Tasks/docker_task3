@@ -33,7 +33,7 @@
         "kind": "Panel",
         "spec": {
           "id": 1,
-          "title": "LLM EC2 — Memory",
+          "title": "Ollama ECS — memory",
           "description": "",
           "links": [],
           "data": {
@@ -45,16 +45,26 @@
                   "spec": {
                     "query": {
                       "kind": "DataQuery",
-                      "group": "prometheus",
+                      "group": "cloudwatch",
                       "version": "v0",
                       "datasource": {
-                        "name": "PBFA97CFB590B2093"
+                        "name": "P034F075C744B399F"
                       },
                       "spec": {
-                        "editorMode": "code",
-                        "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"llm-node\"} / node_memory_MemTotal_bytes{job=\"llm-node\"})",
-                        "legendFormat": "__auto",
-                        "range": true
+                        "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName} MetricName=\"TaskMemoryUtilization\" ClusterName=\"task2-cluster\" ServiceName=\"task2-ollama\"', 'Average', 60)",
+                        "id": "",
+                        "label": "",
+                        "logGroups": [],
+                        "metricEditorMode": 1,
+                        "metricName": "TaskMemoryUtilization",
+                        "metricQueryType": 0,
+                        "namespace": "ECS/ContainerInsights",
+                        "period": "60",
+                        "queryLanguage": "CWLI",
+                        "queryMode": "Metrics",
+                        "region": "default",
+                        "sqlExpression": "",
+                        "statistic": "Average"
                       }
                     },
                     "refId": "A",

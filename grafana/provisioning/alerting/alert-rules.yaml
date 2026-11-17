@@ -1,30 +1,72 @@
 apiVersion: 1
 groups:
   - orgId: 1
-    name: llm-node
+    name: ollama-ecs
     folder: Monitoring
     interval: 1m
     rules:
       - uid: bg38020xacqo0c
-        title: llm-ec2-high-cpu
+        title: ollama-ecs-high-cpu
         annotations:
-          description: "Використання CPU на LLM EC2 перевищує 80% протягом 5 хвилин."
+          description: "Використання CPU на Ollama ECS перевищує 80% протягом 5 хвилин."
         condition: C
         data:
           - refId: A
             relativeTimeRange:
-              from: 600
+              from: 300
               to: 0
-            datasourceUid: PBFA97CFB590B2093
+            datasourceUid: P034F075C744B399F
             model:
-              editorMode: code
-              expr: 100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job="llm-node",mode="idle"}[5m])))
+              datasource:
+                type: cloudwatch
+                uid: P034F075C744B399F
+              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskCpuUtilization" ClusterName="task2-cluster" ServiceName="task2-ollama"'', ''Average'', 60)'
+              hide: false
+              id: ""
               instant: true
               intervalMs: 1000
-              legendFormat: __auto
+              label: ""
+              logGroups: []
               maxDataPoints: 43200
-              range: false
+              metricEditorMode: 1
+              metricName: TaskCpuUtilization
+              metricQueryType: 0
+              namespace: ECS/ContainerInsights
+              period: "60"
+              queryLanguage: CWLI
+              queryMode: Metrics
               refId: A
+              region: default
+              sqlExpression: ""
+              statistic: Average
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
           - refId: C
             queryType: expression
             datasourceUid: __expr__
@@ -46,7 +88,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: reducer
               intervalMs: 1000
               maxDataPoints: 43200
               refId: C
@@ -58,25 +100,67 @@ groups:
         notification_settings:
           receiver: llm-email
       - uid: eg380d2v9iepsf
-        title: llm-ec2-high-memory
+        title: ollama-ecs-high-memory
         annotations:
-          description: "Використання пам'яті на LLM EC2 перевищує 80% протягом 5 хвилин."
+          description: "Використання пам'яті на Ollama ECS перевищує 80% протягом 5 хвилин."
         condition: C
         data:
           - refId: A
             relativeTimeRange:
-              from: 600
+              from: 300
               to: 0
-            datasourceUid: PBFA97CFB590B2093
+            datasourceUid: P034F075C744B399F
             model:
-              editorMode: code
-              expr: 100 * (1 - node_memory_MemAvailable_bytes{job="llm-node"} / node_memory_MemTotal_bytes{job="llm-node"})
+              datasource:
+                type: cloudwatch
+                uid: P034F075C744B399F
+              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskMemoryUtilization" ClusterName="task2-cluster" ServiceName="task2-ollama"'', ''Average'', 60)'
+              hide: false
+              id: ""
               instant: true
               intervalMs: 1000
-              legendFormat: __auto
+              label: ""
+              logGroups: []
               maxDataPoints: 43200
-              range: false
+              metricEditorMode: 1
+              metricName: TaskMemoryUtilization
+              metricQueryType: 0
+              namespace: ECS/ContainerInsights
+              period: "60"
+              queryLanguage: CWLI
+              queryMode: Metrics
               refId: A
+              region: default
+              sqlExpression: ""
+              statistic: Average
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
           - refId: C
             queryType: expression
             datasourceUid: __expr__
@@ -98,7 +182,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: reducer
               intervalMs: 1000
               maxDataPoints: 43200
               refId: C
@@ -110,25 +194,67 @@ groups:
         notification_settings:
           receiver: llm-email
       - uid: fg380fqji06psd
-        title: llm-ec2-low-disk-space
+        title: ollama-ecs-high-storage
         annotations:
-          description: "На кореневому диску LLM EC2 залишилося менше 20% вільного місця протягом 5 хвилин."
+          description: "Використання тимчасового сховища Ollama ECS перевищує 80% протягом 5 хвилин."
         condition: C
         data:
           - refId: A
             relativeTimeRange:
-              from: 600
+              from: 300
               to: 0
-            datasourceUid: PBFA97CFB590B2093
+            datasourceUid: P034F075C744B399F
             model:
-              editorMode: code
-              expr: 100 * node_filesystem_avail_bytes{job="llm-node",mountpoint="/"} / node_filesystem_size_bytes{job="llm-node",mountpoint="/"}
+              datasource:
+                type: cloudwatch
+                uid: P034F075C744B399F
+              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskEphemeralStorageUtilization" ClusterName="task2-cluster" ServiceName="task2-ollama"'', ''Average'', 60)'
+              hide: false
+              id: ""
               instant: true
               intervalMs: 1000
-              legendFormat: __auto
+              label: ""
+              logGroups: []
               maxDataPoints: 43200
-              range: false
+              metricEditorMode: 1
+              metricName: TaskEphemeralStorageUtilization
+              metricQueryType: 0
+              namespace: ECS/ContainerInsights
+              period: "60"
+              queryLanguage: CWLI
+              queryMode: Metrics
               refId: A
+              region: default
+              sqlExpression: ""
+              statistic: Average
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
           - refId: C
             queryType: expression
             datasourceUid: __expr__
@@ -136,8 +262,8 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 20
-                    type: lt
+                      - 80
+                    type: gt
                   operator:
                     type: and
                   query:
@@ -150,7 +276,7 @@ groups:
               datasource:
                 type: __expr__
                 uid: __expr__
-              expression: A
+              expression: reducer
               intervalMs: 1000
               maxDataPoints: 43200
               refId: C

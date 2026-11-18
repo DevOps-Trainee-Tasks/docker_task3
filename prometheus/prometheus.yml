@@ -5,3 +5,8 @@ scrape_configs:
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
+  - job_name: ollama
+    dns_sd_configs:
+      - names: ["ollama.task3.local"]
+        type: A
+        port: 11434

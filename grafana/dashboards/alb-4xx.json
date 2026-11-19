@@ -51,7 +51,7 @@
                         "name": "P034F075C744B399F"
                       },
                       "spec": {
-                        "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_4XX_Count\" LoadBalancer=task2-alb', 'Sum', 60)",
+                        "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_4XX_Count\" LoadBalancer=task3-alb', 'Sum', 60)",
                         "id": "",
                         "label": "",
                         "logGroups": [],

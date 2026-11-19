@@ -10,3 +10,13 @@ scrape_configs:
       - names: ["ollama.task3.local"]
         type: A
         port: 11434
+  - job_name: grafana
+    dns_sd_configs:
+      - names: ["grafana.task3.local"]
+        type: A
+        port: 3000
+  - job_name: webui
+    dns_sd_configs:
+      - names: ["webui.task3.local"]
+        type: A
+        port: 8080

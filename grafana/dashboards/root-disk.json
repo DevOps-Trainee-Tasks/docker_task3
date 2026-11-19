@@ -51,7 +51,7 @@
                         "name": "P034F075C744B399F"
                       },
                       "spec": {
-                        "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName} MetricName=\"TaskEphemeralStorageUtilization\" ClusterName=\"task2-cluster\" ServiceName=\"task2-ollama\"', 'Average', 60)",
+                        "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName} MetricName=\"TaskEphemeralStorageUtilization\" ClusterName=\"task3-cluster\" ServiceName=\"task3-ollama\"', 'Average', 60)",
                         "id": "",
                         "label": "",
                         "logGroups": [],

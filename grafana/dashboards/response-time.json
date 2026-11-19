@@ -51,7 +51,7 @@
                         "name": "P034F075C744B399F"
                       },
                       "spec": {
-                        "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"TargetResponseTime\" LoadBalancer=task2-alb', 'Average', 60)",
+                        "expression": "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"TargetResponseTime\" LoadBalancer=task3-alb', 'Average', 60)",
                         "id": "",
                         "label": "",
                         "logGroups": [],

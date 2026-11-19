@@ -20,7 +20,7 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskCpuUtilization" ClusterName="task2-cluster" ServiceName="task2-ollama"'', ''Average'', 60)'
+              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskCpuUtilization" ClusterName="task3-cluster" ServiceName="task3-ollama"'', ''Average'', 60)'
               hide: false
               id: ""
               instant: true
@@ -114,7 +114,7 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskMemoryUtilization" ClusterName="task2-cluster" ServiceName="task2-ollama"'', ''Average'', 60)'
+              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskMemoryUtilization" ClusterName="task3-cluster" ServiceName="task3-ollama"'', ''Average'', 60)'
               hide: false
               id: ""
               instant: true
@@ -208,7 +208,7 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskEphemeralStorageUtilization" ClusterName="task2-cluster" ServiceName="task2-ollama"'', ''Average'', 60)'
+              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskEphemeralStorageUtilization" ClusterName="task3-cluster" ServiceName="task3-ollama"'', ''Average'', 60)'
               hide: false
               id: ""
               instant: true
@@ -307,7 +307,7 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_4XX_Count" LoadBalancer=task2-alb'', ''Sum'', 60)'
+              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_4XX_Count" LoadBalancer=task3-alb'', ''Sum'', 60)'
               hide: false
               id: ""
               instant: true
@@ -400,7 +400,7 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_5XX_Count" LoadBalancer=task2-alb'', ''Sum'', 60)'
+              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_5XX_Count" LoadBalancer=task3-alb'', ''Sum'', 60)'
               id: ""
               instant: true
               intervalMs: 1000
@@ -492,7 +492,7 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="TargetResponseTime" LoadBalancer=task2-alb'', ''Average'', 60)'
+              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="TargetResponseTime" LoadBalancer=task3-alb'', ''Average'', 60)'
               hide: false
               id: ""
               instant: true

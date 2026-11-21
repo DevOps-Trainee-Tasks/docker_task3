@@ -45,26 +45,16 @@
                   "spec": {
                     "query": {
                       "kind": "DataQuery",
-                      "group": "cloudwatch",
+                      "group": "prometheus",
                       "version": "v0",
                       "datasource": {
-                        "name": "P034F075C744B399F"
+                        "name": "PBFA97CFB590B2093"
                       },
                       "spec": {
-                        "expression": "SEARCH('{ECS/ContainerInsights,ClusterName,ServiceName} MetricName=\"TaskEphemeralStorageUtilization\" ClusterName=\"task3-cluster\" ServiceName=\"task3-ollama\"', 'Average', 60)",
-                        "id": "",
-                        "label": "",
-                        "logGroups": [],
-                        "metricEditorMode": 1,
-                        "metricName": "TaskEphemeralStorageUtilization",
-                        "metricQueryType": 0,
-                        "namespace": "ECS/ContainerInsights",
-                        "period": "60",
-                        "queryLanguage": "CWLI",
-                        "queryMode": "Metrics",
-                        "region": "default",
-                        "sqlExpression": "",
-                        "statistic": "Average"
+                        "editorMode": "code",
+                        "expr": "100 * ecs_task_ephemeral_storage_used_bytes{job=\"ollama-ecs\"} / ecs_task_ephemeral_storage_allocated_bytes{job=\"ollama-ecs\"}",
+                        "instant": false,
+                        "range": true
                       }
                     },
                     "refId": "A",

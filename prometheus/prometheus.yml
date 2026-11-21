@@ -5,18 +5,18 @@ scrape_configs:
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
-  - job_name: ollama
+  - job_name: ollama-ecs
     dns_sd_configs:
       - names: ["ollama.task3.local"]
         type: A
-        port: 11434
-  - job_name: grafana
-    dns_sd_configs:
-      - names: ["grafana.task3.local"]
-        type: A
-        port: 3000
-  - job_name: webui
+        port: 9779
+  - job_name: webui-ecs
     dns_sd_configs:
       - names: ["webui.task3.local"]
         type: A
-        port: 8080
+        port: 9779
+  - job_name: grafana-ecs
+    dns_sd_configs:
+      - names: ["grafana.task3.local"]
+        type: A
+        port: 9779

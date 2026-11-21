@@ -1,0 +1,1 @@
+FROM quay.io/prometheuscommunity/ecs-exporter:v0.7.0

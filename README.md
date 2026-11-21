@@ -1,80 +1,54 @@
-# Docker images for Task 3
+# Task 3 Docker images
 
-This directory contains the container images used by the ECS Fargate deployment in `task3`.
+This directory builds the seven images used by the Terraform project in `../task3`. They are published to separate ECR repositories under the `task3/` prefix.
 
-| Directory | Image | Purpose |
-| --- | --- | --- |
-| `ollama/` | `ollama` | Ollama with the `llama3.2:1b` model downloaded during the build. |
-| `open-webui/` | `open-webui` | Web interface for Ollama. |
-| `prometheus/` | `prometheus` | Prometheus with its configuration. |
-| `grafana/` | `grafana` | Grafana with provisioned data sources, dashboards, and alerts. |
-| `node-exporter/` | — | Old EC2 exporter; it is not built or used by the Fargate deployment. |
+| Directory       | Purpose                                                                       |
+| --------------- | ----------------------------------------------------------------------------- |
+| `ollama/`       | Ollama with the `llama3.2:1b` model downloaded during the build.              |
+| `open-webui/`   | Web interface connected to Ollama and PostgreSQL by the ECS task definition.  |
+| `prometheus/`   | Prometheus configuration for its own metrics and the ECS exporters.           |
+| `grafana/`      | Provisioned data sources, dashboards, and alerts.                             |
+| `db-init/`      | Initializes the WebUI database role and PostgreSQL `vector` extension.        |
+| `ecs-exporter/` | Exposes ECS task and container metrics on port 9779.                          |
+| `log-router/`   | Sends application logs to CloudWatch and EFS, organized by availability zone. |
+
+Prometheus discovers the exporters through the private `task3.local` Cloud Map domain. Grafana's Ollama CPU, memory, and ephemeral storage dashboards use Prometheus. Its ALB dashboards use CloudWatch.
 
 ## Requirements
 
-- Docker with Buildx, running locally.
-- AWS CLI authenticated to the AWS account that owns the ECR repository.
-- An existing private ECR repository in `us-east-1`.
+- Docker with Buildx.
+- AWS CLI authenticated to the account containing the ECR repositories.
+- These seven ECR repositories in `us-east-1`: `task3/ollama`, `task3/open-webui`, `task3/prometheus`, `task3/grafana`, `task3/db-init`, `task3/ecs-exporter`, and `task3/log-router`.
 
-The build script publishes `linux/amd64` images. Building Ollama also downloads the model, so its build can take longer than the other images.
+The script builds `linux/amd64` images for ECS Fargate. The Ollama build downloads the model and can take longer.
 
-## Build and push
+## Build and push all images
 
-From this directory, run:
+From this directory:
 
-```sh
-./build-and-push.sh ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME v2
+```bash
+chmod +x build-and-push.sh
+./build-and-push.sh ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/task3 v6
 ```
 
-Replace `ACCOUNT_ID` and `REPOSITORY_NAME` with your ECR values. The second argument is the version; if omitted, the script uses `v2`.
-
-The script logs in to ECR, then builds and pushes these four tags into the same repository:
+Replace `ACCOUNT_ID` with your AWS account ID and `v6` with a **new tag**. The script logs in to ECR, then builds and pushes:
 
 ```text
-ollama-v2
-open-webui-v2
-prometheus-v2
-grafana-v2
+task3/ollama:v6
+task3/open-webui:v6
+task3/prometheus:v6
+task3/grafana:v6
+task3/db-init:v6
+task3/ecs-exporter:v6
+task3/log-router:v6
 ```
 
-It does not build `node-exporter`.
+The script expects the seven ECR repositories to exist. It stops if any build or push fails.
 
-## Run locally
+## Deploy the new images
 
-After publishing, use the same repository URI and version to test the containers on your computer:
+After a successful push, set the new tags on all six image references in `../task3/main.tf` and the `log-router` image in `../task3/locals.tf`. The current Terraform configuration uses different tags for different images, so the images you push must match the references before deployment.
 
-```sh
-repo=ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME
-version=v2
-docker network create task3
-docker run -d --name ollama --network task3 -p 11434:11434 "$repo:ollama-$version"
-docker run -d --name prometheus --network task3 -p 9090:9090 "$repo:prometheus-$version"
-docker run -d --name grafana --network task3 -p 3000:3000 -e PROMETHEUS_URL=http://prometheus:9090 -e ALERT_EMAIL=you@example.com "$repo:grafana-$version"
-docker run -d --name open-webui --network task3 -p 8080:8080 -e OLLAMA_BASE_URL=http://ollama:11434 "$repo:open-webui-$version"
-```
+Then run Terraform from `../task3`, or push the Terraform changes to a branch and merge the pull request to trigger the configured GitHub Actions workflows.
 
-If your local Docker installation cannot access ECR, repeat the login command in `build-and-push.sh` first. On an ARM Mac, running `linux/amd64` images may be slow because Docker emulates the architecture.
-
-Check the services:
-
-```sh
-curl http://localhost:11434/api/tags
-curl http://localhost:9090/-/healthy
-curl http://localhost:3000/api/health
-curl -I http://localhost:8080/
-```
-
-Open WebUI at `http://localhost:8080/` and Grafana at `http://localhost:3000/`.
-
-This local WebUI example uses its default database. In ECS, the task definition supplies `DATABASE_URL` and `WEBUI_SECRET_KEY` through Secrets Manager. Prometheus currently scrapes only itself; the Ollama ECS CPU, memory, and ephemeral storage panels in Grafana read CloudWatch Container Insights. The Grafana CloudWatch data source needs the ECS task role at runtime. Email alerts also need Grafana SMTP settings at runtime; `ALERT_EMAIL` only sets the recipient.
-
-Stop the local containers:
-
-```sh
-docker rm -f open-webui grafana prometheus ollama
-docker network rm task3
-```
-
-## Deploy on ECS Fargate
-
-The Docker script does not create ECS resources. Terraform in `task3` creates the cluster and services. After pushing a new version, set the four image tags in `task3/main.tf` to that version before running Terraform. For example, images pushed as `*-v2` require `ollama-v2`, `open-webui-v2`, `prometheus-v2`, and `grafana-v2` in the ECS module inputs.
+The ECS task definitions supply database credentials, Grafana SMTP settings, service URLs, log volumes, and service discovery. These values are not baked into the Docker images.

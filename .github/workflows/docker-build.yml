@@ -1,0 +1,66 @@
+name: Build Docker images
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          [
+            ollama,
+            open-webui,
+            prometheus,
+            grafana,
+            db-init,
+            ecs-exporter,
+            log-router,
+          ]
+
+    steps:
+      - name: Check out PR commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.image }}
+        env:
+          IMAGE: ${{ matrix.image }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          docker buildx build --platform linux/amd64 --load \
+            --tag "task3-${IMAGE}:${COMMIT_SHA}" "./${IMAGE}"
+          docker save "task3-${IMAGE}:${COMMIT_SHA}" | gzip -1 > image.tar.gz
+
+      - name: Save built image
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-${{ matrix.image }}
+          path: image.tar.gz
+          retention-days: 7
+          compression-level: 0
+
+  push:
+    needs: build
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/ecr-push.yml
+    with:
+      commit_sha: ${{ github.event.pull_request.head.sha }}

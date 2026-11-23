@@ -8,37 +8,27 @@ groups:
       - uid: bg38020xacqo0c
         title: ollama-ecs-high-cpu
         annotations:
-          description: "Використання CPU на Ollama ECS перевищує 80% протягом 5 хвилин."
+          description: Використання CPU контейнера ollama перевищує 80% протягом 5 хвилин.
         condition: C
         data:
           - refId: A
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: P034F075C744B399F
+            datasourceUid: PBFA97CFB590B2093
             model:
               datasource:
-                type: cloudwatch
-                uid: P034F075C744B399F
-              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskCpuUtilization" ClusterName="task3-cluster" ServiceName="task3-ollama"'', ''Average'', 60)'
-              hide: false
-              id: ""
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * rate(ecs_container_cpu_usage_seconds_total{job="ollama-ecs",container_name="ollama"}[5m])
+                / on(job, instance) ecs_task_cpu_limit_vcpus{job="ollama-ecs"}
               instant: true
-              intervalMs: 1000
-              label: ""
-              logGroups: []
-              maxDataPoints: 43200
-              metricEditorMode: 1
-              metricName: TaskCpuUtilization
-              metricQueryType: 0
-              namespace: ECS/ContainerInsights
-              period: "60"
-              queryLanguage: CWLI
-              queryMode: Metrics
+              range: false
               refId: A
-              region: default
-              sqlExpression: ""
-              statistic: Average
+              intervalMs: 1000
+              maxDataPoints: 43200
           - refId: reducer
             queryType: expression
             datasourceUid: __expr__
@@ -102,37 +92,27 @@ groups:
       - uid: eg380d2v9iepsf
         title: ollama-ecs-high-memory
         annotations:
-          description: "Використання пам'яті на Ollama ECS перевищує 80% протягом 5 хвилин."
+          description: Використання RAM контейнера ollama перевищує 80% протягом 5 хвилин.
         condition: C
         data:
           - refId: A
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: P034F075C744B399F
+            datasourceUid: PBFA97CFB590B2093
             model:
               datasource:
-                type: cloudwatch
-                uid: P034F075C744B399F
-              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskMemoryUtilization" ClusterName="task3-cluster" ServiceName="task3-ollama"'', ''Average'', 60)'
-              hide: false
-              id: ""
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_container_memory_usage_bytes{job="ollama-ecs",container_name="ollama"}
+                / on(job, instance) ecs_task_memory_limit_bytes{job="ollama-ecs"}
               instant: true
-              intervalMs: 1000
-              label: ""
-              logGroups: []
-              maxDataPoints: 43200
-              metricEditorMode: 1
-              metricName: TaskMemoryUtilization
-              metricQueryType: 0
-              namespace: ECS/ContainerInsights
-              period: "60"
-              queryLanguage: CWLI
-              queryMode: Metrics
+              range: false
               refId: A
-              region: default
-              sqlExpression: ""
-              statistic: Average
+              intervalMs: 1000
+              maxDataPoints: 43200
           - refId: reducer
             queryType: expression
             datasourceUid: __expr__
@@ -196,37 +176,29 @@ groups:
       - uid: fg380fqji06psd
         title: ollama-ecs-high-storage
         annotations:
-          description: "Використання тимчасового сховища Ollama ECS перевищує 80% протягом 5 хвилин."
+          description:
+            Використання спільного ephemeral storage ECS task ollama перевищує
+            80% протягом 5 хвилин.
         condition: C
         data:
           - refId: A
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: P034F075C744B399F
+            datasourceUid: PBFA97CFB590B2093
             model:
               datasource:
-                type: cloudwatch
-                uid: P034F075C744B399F
-              expression: 'SEARCH(''{ECS/ContainerInsights,ClusterName,ServiceName} MetricName="TaskEphemeralStorageUtilization" ClusterName="task3-cluster" ServiceName="task3-ollama"'', ''Average'', 60)'
-              hide: false
-              id: ""
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_task_ephemeral_storage_used_bytes{job="ollama-ecs"} / on(job,
+                instance) ecs_task_ephemeral_storage_allocated_bytes{job="ollama-ecs"}
               instant: true
-              intervalMs: 1000
-              label: ""
-              logGroups: []
-              maxDataPoints: 43200
-              metricEditorMode: 1
-              metricName: TaskEphemeralStorageUtilization
-              metricQueryType: 0
-              namespace: ECS/ContainerInsights
-              period: "60"
-              queryLanguage: CWLI
-              queryMode: Metrics
+              range: false
               refId: A
-              region: default
-              sqlExpression: ""
-              statistic: Average
+              intervalMs: 1000
+              maxDataPoints: 43200
           - refId: reducer
             queryType: expression
             datasourceUid: __expr__
@@ -287,6 +259,1123 @@ groups:
         isPaused: false
         notification_settings:
           receiver: llm-email
+      - uid: t3ollaresponse
+        title: ollama-ecs-high-response-time
+        annotations:
+          description:
+            Час відповіді HTTP health probe ollama перевищує 2 с протягом 5
+            хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr: probe_duration_seconds{job="service-http",service="ollama"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+  - orgId: 1
+    name: webui-ecs
+    folder: Monitoring
+    interval: 1m
+    rules:
+      - uid: t3webucpu
+        title: webui-ecs-high-cpu
+        annotations:
+          description: Використання CPU контейнера webui перевищує 80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * rate(ecs_container_cpu_usage_seconds_total{job="webui-ecs",container_name="webui"}[5m])
+                / on(job, instance) ecs_task_cpu_limit_vcpus{job="webui-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3webumemory
+        title: webui-ecs-high-memory
+        annotations:
+          description: Використання RAM контейнера webui перевищує 80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_container_memory_usage_bytes{job="webui-ecs",container_name="webui"}
+                / on(job, instance) ecs_task_memory_limit_bytes{job="webui-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3webustorage
+        title: webui-ecs-high-storage
+        annotations:
+          description:
+            Використання спільного ephemeral storage ECS task webui перевищує
+            80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_task_ephemeral_storage_used_bytes{job="webui-ecs"} / on(job,
+                instance) ecs_task_ephemeral_storage_allocated_bytes{job="webui-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3weburesponse
+        title: webui-ecs-high-response-time
+        annotations:
+          description:
+            Час відповіді HTTP health probe webui перевищує 2 с протягом 5
+            хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr: probe_duration_seconds{job="service-http",service="webui"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+  - orgId: 1
+    name: grafana-ecs
+    folder: Monitoring
+    interval: 1m
+    rules:
+      - uid: t3grafcpu
+        title: grafana-ecs-high-cpu
+        annotations:
+          description: Використання CPU контейнера grafana перевищує 80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * rate(ecs_container_cpu_usage_seconds_total{job="grafana-ecs",container_name="grafana"}[5m])
+                / on(job, instance) ecs_task_cpu_limit_vcpus{job="grafana-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3grafmemory
+        title: grafana-ecs-high-memory
+        annotations:
+          description: Використання RAM контейнера grafana перевищує 80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_container_memory_usage_bytes{job="grafana-ecs",container_name="grafana"}
+                / on(job, instance) ecs_task_memory_limit_bytes{job="grafana-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3grafstorage
+        title: grafana-ecs-high-storage
+        annotations:
+          description:
+            Використання спільного ephemeral storage ECS task grafana перевищує
+            80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_task_ephemeral_storage_used_bytes{job="grafana-ecs"} / on(job,
+                instance) ecs_task_ephemeral_storage_allocated_bytes{job="grafana-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3grafresponse
+        title: grafana-ecs-high-response-time
+        annotations:
+          description:
+            Час відповіді HTTP health probe grafana перевищує 2 с протягом
+            5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr: probe_duration_seconds{job="service-http",service="grafana"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+  - orgId: 1
+    name: prometheus-ecs
+    folder: Monitoring
+    interval: 1m
+    rules:
+      - uid: t3promcpu
+        title: prometheus-ecs-high-cpu
+        annotations:
+          description:
+            Використання CPU контейнера prometheus перевищує 80% протягом 5
+            хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * rate(ecs_container_cpu_usage_seconds_total{job="prometheus-ecs",container_name="prometheus"}[5m])
+                / on(job, instance) ecs_task_cpu_limit_vcpus{job="prometheus-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3prommemory
+        title: prometheus-ecs-high-memory
+        annotations:
+          description:
+            Використання RAM контейнера prometheus перевищує 80% протягом 5
+            хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_container_memory_usage_bytes{job="prometheus-ecs",container_name="prometheus"}
+                / on(job, instance) ecs_task_memory_limit_bytes{job="prometheus-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3promstorage
+        title: prometheus-ecs-high-storage
+        annotations:
+          description:
+            Використання спільного ephemeral storage ECS task prometheus перевищує
+            80% протягом 5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr:
+                100 * ecs_task_ephemeral_storage_used_bytes{job="prometheus-ecs"} /
+                on(job, instance) ecs_task_ephemeral_storage_allocated_bytes{job="prometheus-ecs"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
+      - uid: t3promresponse
+        title: prometheus-ecs-high-response-time
+        annotations:
+          description:
+            Час відповіді HTTP health probe prometheus перевищує 2 с протягом
+            5 хвилин.
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr: probe_duration_seconds{job="service-http",service="prometheus"}
+              instant: true
+              range: false
+              refId: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: reducer
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: []
+                  reducer:
+                    params: []
+                    type: avg
+                  type: query
+              datasource:
+                name: Expression
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: reducer
+              type: reduce
+          - refId: C
+            queryType: expression
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 2
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: reducer
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        notification_settings:
+          receiver: llm-email
   - orgId: 1
     name: alb-alerts
     folder: Monitoring
@@ -295,7 +1384,7 @@ groups:
       - uid: bg3blshl54ydcb
         title: alb-4xx
         annotations:
-          description: "ALB згенерував щонайменше одну помилку HTTP 4xx за хвилину."
+          description: ALB згенерував щонайменше одну помилку HTTP 4xx за хвилину.
         condition: C
         data:
           - refId: A
@@ -307,7 +1396,9 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_4XX_Count" LoadBalancer=task3-alb'', ''Sum'', 60)'
+              expression:
+                SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_4XX_Count"
+                LoadBalancer=task3-alb', 'Sum', 60)
               hide: false
               id: ""
               instant: true
@@ -388,7 +1479,7 @@ groups:
       - uid: cg3blx500ncowd
         title: alb-5xx
         annotations:
-          description: "ALB згенерував щонайменше одну помилку HTTP 5xx за хвилину."
+          description: ALB згенерував щонайменше одну помилку HTTP 5xx за хвилину.
         condition: C
         data:
           - refId: A
@@ -400,7 +1491,9 @@ groups:
               datasource:
                 type: cloudwatch
                 uid: P034F075C744B399F
-              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_5XX_Count" LoadBalancer=task3-alb'', ''Sum'', 60)'
+              expression:
+                SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName="HTTPCode_ELB_5XX_Count"
+                LoadBalancer=task3-alb', 'Sum', 60)
               id: ""
               instant: true
               intervalMs: 1000
@@ -477,97 +1570,6 @@ groups:
         isPaused: false
         notification_settings:
           receiver: llm-email
-      - uid: eg3bm5v65wbnkf
-        title: alb-response-time
-        annotations:
-          description: "Середній час відповіді цільових інстансів ALB перевищує 2 секунди протягом 5 хвилин."
-        condition: C
-        data:
-          - refId: A
-            relativeTimeRange:
-              from: 300
-              to: 0
-            datasourceUid: P034F075C744B399F
-            model:
-              datasource:
-                type: cloudwatch
-                uid: P034F075C744B399F
-              expression: 'SEARCH(''{AWS/ApplicationELB,LoadBalancer} MetricName="TargetResponseTime" LoadBalancer=task3-alb'', ''Average'', 60)'
-              hide: false
-              id: ""
-              instant: true
-              intervalMs: 1000
-              label: ""
-              logGroups: []
-              maxDataPoints: 43200
-              metricEditorMode: 1
-              metricName: TargetResponseTime
-              metricQueryType: 0
-              namespace: AWS/ApplicationELB
-              period: "60"
-              queryLanguage: CWLI
-              queryMode: Metrics
-              refId: A
-              region: default
-              sqlExpression: ""
-              statistic: Average
-          - refId: reducer
-            queryType: expression
-            datasourceUid: __expr__
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 0
-                      - 0
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params: []
-                  reducer:
-                    params: []
-                    type: avg
-                  type: query
-              datasource:
-                name: Expression
-                type: __expr__
-                uid: __expr__
-              expression: A
-              intervalMs: 1000
-              maxDataPoints: 43200
-              reducer: last
-              refId: reducer
-              type: reduce
-          - refId: C
-            queryType: expression
-            datasourceUid: __expr__
-            model:
-              conditions:
-                - evaluator:
-                    params:
-                      - 2
-                    type: gt
-                  operator:
-                    type: and
-                  query:
-                    params:
-                      - C
-                  reducer:
-                    params: []
-                    type: last
-                  type: query
-              datasource:
-                type: __expr__
-                uid: __expr__
-              expression: reducer
-              intervalMs: 1000
-              maxDataPoints: 43200
-              refId: C
-              type: threshold
-        noDataState: OK
-        execErrState: Error
-        for: 5m
-        isPaused: false
-        notification_settings:
-          receiver: llm-email
+deleteRules:
+  - orgId: 1
+    uid: eg3bm5v65wbnkf

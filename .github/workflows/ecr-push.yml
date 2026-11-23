@@ -1,0 +1,52 @@
+name: Push Docker images to ECR
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        required: true
+        type: string
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    environment: ecr-push
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download built images
+        uses: actions/download-artifact@v4
+        with:
+          pattern: image-*
+          path: images
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ vars.ALLOWED_ACCOUNT_IDS }}
+
+      - name: Log in to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push the approved build
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          ECR_REPOSITORY_URI: ${{ vars.ECR_REPOSITORY_URI }}
+        run: |
+          set -euo pipefail
+          [[ "$COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]]
+          tag="${COMMIT_SHA:0:5}"
+
+          for image in ollama open-webui prometheus grafana db-init ecs-exporter log-router; do
+            gzip -dc "images/image-${image}/image.tar.gz" | docker load
+            docker tag "task3-${image}:${COMMIT_SHA}" "${ECR_REPOSITORY_URI}/${image}:${tag}"
+            docker push "${ECR_REPOSITORY_URI}/${image}:${tag}"
+            docker image rm "task3-${image}:${COMMIT_SHA}" "${ECR_REPOSITORY_URI}/${image}:${tag}" || true
+            rm "images/image-${image}/image.tar.gz"
+          done
+
+          echo "Pushed all seven images with tag: ${tag}" >> "$GITHUB_STEP_SUMMARY"

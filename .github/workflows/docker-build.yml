@@ -3,9 +3,21 @@ name: Build Docker images
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "ollama/**"
+      - "open-webui/**"
+      - "prometheus/**"
+      - "grafana/**"
+      - "db-init/**"
+      - "ecs-exporter/**"
+      - "log-router/**"
 
 permissions:
   contents: read
+
+concurrency:
+  group: docker-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -20,8 +32,24 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
         run: |
+          mkdir images
           for image in ollama open-webui prometheus grafana db-init ecs-exporter log-router; do
-            if ! git diff "$BASE...HEAD" -- "$image/"; then
-              docker build -t "task3-$image:build" "./$image"
+            if git diff --quiet "$BASE...HEAD" -- "$image/"; then
+              continue
             fi
+            docker build -t "task3-$image:build" "./$image"
+            docker save -o "images/$image.tar" "task3-$image:build"
           done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: images
+          path: images/
+
+  push:
+    needs: build
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/ecr-push.yml

@@ -1,20 +1,17 @@
 name: Push Docker images to ECR
 
 on:
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  id-token: write
+  workflow_call:
 
 jobs:
   push:
     runs-on: ubuntu-latest
+    environment: ecr-push
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
+          name: images
+          path: images
 
       - uses: aws-actions/configure-aws-credentials@v6.3.0
         with:
@@ -23,15 +20,15 @@ jobs:
 
       - uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push changed images
+      - name: Push images
         env:
-          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.event.pull_request.head.sha }}
           ECR: ${{ vars.ECR_REPOSITORY_URI }}
         run: |
-          for image in ollama open-webui prometheus grafana db-init ecs-exporter log-router; do
-            if ! git diff --quiet "$BEFORE" HEAD -- "$image/"; then
-              tag="${ECR}/${image}:${GITHUB_SHA:0:5}"
-              docker build -t "$tag" "./$image"
-              docker push "$tag"
-            fi
+          for file in images/*.tar; do
+            image=${file##*/}
+            image=${image%.tar}
+            docker load -i "$file"
+            docker tag "task3-$image:build" "${ECR}/${image}:${SHA:0:5}"
+            docker push "${ECR}/${image}:${SHA:0:5}"
           done
